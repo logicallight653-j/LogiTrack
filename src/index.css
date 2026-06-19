@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;550&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  --color-brand-blue: #2f6fed;
+  --color-brand-dark: #0b1220;
+  --color-brand-card: #111a2e;
+  --color-brand-sidebar: #0f1830;
+  --color-brand-border: #243052;
+}
+
+/* Global scrollbars and aesthetic polishing for a sleek desktop feel */
+body {
+  background-color: #0b1220;
+  color: #e8eefc;
+  font-family: var(--font-sans);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0b1220;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #243052;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2f6fed;
+}
+
+/* Input & transition highlights */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #2f6fed !important;
+  box-shadow: 0 0 0 1px rgba(47, 111, 237, 0.2);
+}
+
+/* Custom glass card style for depth */
+.glass-panel {
+  background-color: rgba(17, 26, 46, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid #243052;
+}

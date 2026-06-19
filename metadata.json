@@ -1,0 +1,6 @@
+{
+  "name": "LogiTrack Fleet",
+  "description": "Enterprise-grade real-time logistics dashboard, warehouse stock management, and phone-based shipment tracking with offline synchronization, camera barcode scanner, SSO configuration, and billing tiers.",
+  "requestFramePermissions": ["camera", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
