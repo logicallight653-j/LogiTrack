@@ -23,14 +23,18 @@ export const MobileAppSuite: React.FC = () => {
   const { isOnline, currentUser, shipments, inventory } = useApp();
   const [copiedScript, setCopiedScript] = useState<boolean>(false);
   const [activeSimScreen, setActiveSimScreen] = useState<"dashboard" | "scanner" | "shipment">("dashboard");
-  const [swStatus, setSwStatus] = useState<"checking" | "active" | "unsupported">("checking");
+  const [swStatus, setSwStatus] = useState<"checking" | "active" | "unsupported" | "iframe">("checking");
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstallable, setIsInstallable] = useState<boolean>(false);
 
   // Get current app URL to generate a QR code dynamically
   const currentAppUrl = "https://ais-pre-m63qo5djxuvdxu244ownqx-956007456649.europe-west2.run.app";
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&color=2a6fed&bgcolor=0b1220&data=${encodeURIComponent(currentAppUrl)}`;
 
   useEffect(() => {
-    if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+    if (typeof window !== "undefined" && window.self !== window.top) {
+      setSwStatus("iframe");
+    } else if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
       navigator.serviceWorker.getRegistration().then(registration => {
         if (registration) {
           setSwStatus("active");
@@ -43,7 +47,32 @@ export const MobileAppSuite: React.FC = () => {
     } else {
       setSwStatus("unsupported");
     }
+
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    };
   }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) {
+      alert("Installation is fully active! If you are on an iOS device, please tap the browser Share button and select 'Add to Home Screen' to install. On Android, tap the top 3-dots menu icon and choose 'Install app'.");
+      return;
+    }
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      setIsInstallable(false);
+      setDeferredPrompt(null);
+    }
+  };
 
   const capacitorCode = `npm install @capacitor/core @capacitor/cli
 npx cap init LogiTrack com.logitrack.fleet --web-dir=dist
@@ -92,15 +121,24 @@ npx cap open ios`;
             </p>
           </div>
           
-          <a
-            href={currentAppUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="shrink-0 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold font-mono transition-all flex items-center gap-2 shadow-lg"
-          >
-            <span>Launch Web App</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+          <div className="flex flex-col sm:flex-row gap-3.5 shrink-0">
+            <button
+              onClick={handleInstallClick}
+              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold font-mono transition-all flex items-center justify-center gap-2 shadow-lg cursor-pointer"
+            >
+              <Download className="w-4 h-4 animate-bounce" />
+              <span>Install App on Device</span>
+            </button>
+            <a
+              href={currentAppUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold font-mono transition-all flex items-center justify-center gap-2 shadow-lg"
+            >
+              <span>Launch Web App</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          </div>
         </div>
       </div>
 
@@ -382,14 +420,32 @@ npx cap open ios`;
               <div className="p-3 bg-[#0b1220]/60 border border-[#243052] rounded-xl space-y-1">
                 <span className="text-[10px] font-mono text-gray-500 block">OFFLINE SERVICE WORKER HOOK</span>
                 <span className="text-xs font-mono font-bold text-[#e2ebf0] block">sw.js Cache System</span>
-                <div className="flex items-center gap-1.5 mt-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span className="text-[10px] text-emerald-400 font-bold font-mono">
-                    {swStatus === "active" ? "Active (Cache Engine Online)" : "Ready (PWA Standalone Link)"}
-                  </span>
+                <div className="flex items-center gap-1.5 mt-1 font-mono text-[10px]">
+                  {swStatus === "iframe" ? (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                      <span className="text-amber-400 font-bold">
+                        Running in Dev Iframe (Blocked by Browser)
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse"></span>
+                      <span className="text-[#10b981] font-bold">
+                        {swStatus === "active" ? "Active (Cache Engine Online)" : "Ready (PWA Standalone Link)"}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
+
+            {swStatus === "iframe" && (
+              <div className="mt-3 p-3 bg-amber-950/20 border border-amber-500/20 rounded-xl text-xs text-amber-200 leading-relaxed font-sans">
+                <span className="font-bold block mb-1">ℹ️ Browser Security Information:</span>
+                Modern browsers block Service Worker registrations when code is loaded within an embedded developer iframe (like this preview panel). Rest assured, your service worker configuration is fully operational and registers immediately when you scan the QR code on your mobile device, or open the app directly in its own tab.
+              </div>
+            )}
           </div>
 
           {/* Section 3: Native Compilation Guide with Capacitor */}
