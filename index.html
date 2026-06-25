@@ -2,12 +2,33 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>LogiTrack Fleet</title>
+    <!-- iOS / Android Standalone Mobile App Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="LogiTrack" />
+    <meta name="theme-color" content="#2f6fed" />
+    
+    <!-- PWA Manifest Link -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    
+    <!-- Touch Icons -->
+    <link rel="apple-touch-icon" href="https://img.icons8.com/color/192/delivery.png" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Service worker auto-registration for Mobile PWA
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('LogiTrack Mobile SW Registered!', reg.scope))
+            .catch(err => console.warn('SW registration failed', err));
+        });
+      }
+    </script>
   </body>
 </html>
 

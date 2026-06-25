@@ -7,6 +7,7 @@ import { ShipmentTracking } from "./components/ShipmentTracking";
 import { OfflineManager } from "./components/OfflineManager";
 import { TeamConfigSSO } from "./components/TeamConfigSSO";
 import { SubscriptionBilling } from "./components/SubscriptionBilling";
+import { MobileAppSuite } from "./components/MobileAppSuite";
 
 import {
   signInWithEmailAndPassword,
@@ -35,6 +36,7 @@ import {
   X,
   Mail,
   Lock,
+  Smartphone,
 } from "lucide-react";
 
 // The central app container utilizing the context values
@@ -54,7 +56,7 @@ const LogiTrackApp: React.FC = () => {
   } = useApp();
 
   const [activeTab, setActiveTab ] = useState<
-    "dashboard" | "inventory" | "scanner" | "shipments" | "sync" | "team" | "billing"
+    "dashboard" | "inventory" | "scanner" | "shipments" | "sync" | "team" | "billing" | "mobile"
   >("dashboard");
 
   const [showNotificationsMenu, setShowNotificationsMenu] = useState<boolean>(false);
@@ -478,6 +480,18 @@ const LogiTrackApp: React.FC = () => {
               <CreditCard className="w-4 h-4 text-teal-400" />
               <span>Billing & Backups</span>
             </button>
+
+            <button
+              onClick={() => setActiveTab("mobile")}
+              className={`w-full p-2.5 px-3.5 rounded-xl text-xs font-bold transition flex items-center gap-3 cursor-pointer text-left ${
+                activeTab === "mobile"
+                  ? "bg-[#243052] text-white font-extrabold border border-[#2f6fed]/35 shadow-sm"
+                  : "text-[#a9b6da] hover:text-white hover:bg-[#162449]"
+              }`}
+            >
+              <Smartphone className="w-4 h-4 text-cyan-400 animate-pulse" />
+              <span>Mobile App Suite</span>
+            </button>
           </nav>
 
           {/* Quick specs footnote inside sidebar */}
@@ -505,6 +519,8 @@ const LogiTrackApp: React.FC = () => {
           {activeTab === "team" && <TeamConfigSSO />}
 
           {activeTab === "billing" && <SubscriptionBilling />}
+
+          {activeTab === "mobile" && <MobileAppSuite />}
 
         </main>
 

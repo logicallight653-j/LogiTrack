@@ -132,6 +132,74 @@ app.post("/api/payfast/notify", (req, res) => {
   res.status(200).send("OK APPROVED");
 });
 
+// PWA Manifest and Service Worker Server-Side Endpoints
+app.get("/manifest.webmanifest", (req, res) => {
+  res.setHeader("Content-Type", "application/manifest+json");
+  res.json({
+    name: "LogiTrack Fleet",
+    short_name: "LogiTrack",
+    description: "Enterprise-grade Logistics Real-time Dashboard & Fleet Tracking",
+    start_url: "/",
+    display: "standalone",
+    background_color: "#0b1220",
+    theme_color: "#2f6fed",
+    orientation: "portrait",
+    icons: [
+      {
+        src: "https://img.icons8.com/color/512/delivery.png",
+        sizes: "512x512",
+        type: "image/png"
+      },
+      {
+        src: "https://img.icons8.com/color/192/delivery.png",
+        sizes: "192x192",
+        type: "image/png"
+      }
+    ]
+  });
+});
+
+app.get("/sw.js", (req, res) => {
+  res.setHeader("Content-Type", "application/javascript");
+  res.send(`
+    const CACHE_NAME = 'logitrack-v2.4';
+    const ASSETS = [
+      '/',
+      '/index.html'
+    ];
+
+    self.addEventListener('install', (e) => {
+      e.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+          return cache.addAll(ASSETS).catch(() => {});
+        })
+      );
+    });
+
+    self.addEventListener('fetch', (e) => {
+      if (e.request.method !== 'GET' || e.request.url.includes('/api/') || e.request.url.includes('firestore.googleapis.com')) {
+        return;
+      }
+      e.respondWith(
+        caches.match(e.request).then((cachedResponse) => {
+          if (cachedResponse) return cachedResponse;
+          return fetch(e.request).then((response) => {
+            if (response && response.status === 200 && e.request.url.startsWith(self.location.origin)) {
+              const cacheCopy = response.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(e.request, cacheCopy);
+              });
+            }
+            return response;
+          }).catch(() => {
+            return caches.match('/');
+          });
+        })
+      );
+    });
+  `);
+});
+
 // Mounting Vite Development Server Middleware OR serving compiled bundles
 async function initializeViteServer() {
   if (process.env.NODE_ENV !== "production") {
